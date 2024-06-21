@@ -55,3 +55,45 @@ func (m Mongo) AddSongToAlbum(ctx context.Context, song song.Song) error {
 		UpdateOne(ctx, bson.M{"_id": song.Album.ID}, bson.M{"$push": bson.M{"songs": doc}})
 	return err
 }
+
+func (m Mongo) GetSongByID(ctx context.Context, id string) (song.Song, error) {
+	result := m.db.Collection(songCollectionName).FindOne(ctx, bson.M{"_id": id})
+	if err := result.Err(); err != nil {
+		return song.Song{}, err
+	}
+
+	var doc document.Song
+	if err := result.Decode(&doc); err != nil {
+		return song.Song{}, err
+	}
+
+	return doc.ToDomain(), nil
+}
+
+func (m Mongo) GetArtistByID(ctx context.Context, id string) (song.Artist, error) {
+	result := m.db.Collection(artistCollectionName).FindOne(ctx, bson.M{"_id": id})
+	if err := result.Err(); err != nil {
+		return song.Artist{}, err
+	}
+
+	var doc document.Artist
+	if err := result.Decode(&doc); err != nil {
+		return song.Artist{}, err
+	}
+
+	return doc.ToDomain(), nil
+}
+
+func (m Mongo) GetAlbumByID(ctx context.Context, id string) (song.Album, error) {
+	result := m.db.Collection(albumsCollectionName).FindOne(ctx, bson.M{"_id": id})
+	if err := result.Err(); err != nil {
+		return song.Album{}, err
+	}
+
+	var doc document.Album
+	if err := result.Decode(&doc); err != nil {
+		return song.Album{}, err
+	}
+
+	return doc.ToDomain(), nil
+}

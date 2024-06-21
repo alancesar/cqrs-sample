@@ -40,6 +40,55 @@ type (
 	}
 )
 
+func (s Song) ToDomain() song.Song {
+	return song.Song{
+		ID:          s.ID,
+		TrackNumber: s.TrackNumber,
+		Title:       s.Title,
+		Album:       s.Album.ToDomain(),
+		Artist:      s.Artist.ToDomain(),
+	}
+}
+
+func (s SongInAlbum) ToDomain() song.Song {
+	return song.Song{
+		ID:          s.ID,
+		TrackNumber: s.TrackNumber,
+		Title:       s.Title,
+	}
+}
+
+func (a Album) ToDomain() song.Album {
+	songs := make([]song.Song, len(a.Songs), len(a.Songs))
+	for i, s := range a.Songs {
+		songs[i] = s.ToDomain()
+	}
+
+	return song.Album{
+		ID:          a.ID,
+		Title:       a.Title,
+		Artist:      a.Artist.ToDomain(),
+		ReleaseYear: a.ReleaseYear,
+		Songs:       songs,
+	}
+}
+
+func (a AlbumInSong) ToDomain() song.Album {
+	return song.Album{
+		ID:          a.ID,
+		Title:       a.Title,
+		ReleaseYear: a.ReleaseYear,
+	}
+}
+
+func (a Artist) ToDomain() song.Artist {
+	return song.Artist{
+		ID:     a.ID,
+		Name:   a.Name,
+		Gender: song.Gender(a.Gender),
+	}
+}
+
 func NewArtistFromDomain(a song.Artist) Artist {
 	return Artist{
 		ID:     a.ID,
