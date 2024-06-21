@@ -3,6 +3,7 @@ module cqrs-sample
 go 1.21.1
 
 require (
+	github.com/go-chi/chi/v5 v5.0.14 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
