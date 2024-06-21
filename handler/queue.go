@@ -54,34 +54,34 @@ func NewSongPublished(db SongDatabase) *SongPublished {
 }
 
 func (ah ArtistSubscribed) Handle(ctx context.Context, body []byte, _ map[string]interface{}) error {
-	artist, err := unmarshal[song.Artist](body)
+	artist, err := unmarshal[event.Artist](body)
 	if err != nil {
 		return err
 	}
 
-	return ah.db.CreateArtist(ctx, artist)
+	return ah.db.CreateArtist(ctx, artist.ToDomain())
 }
 
 func (ap AlbumPublished) Handle(ctx context.Context, body []byte, _ map[string]interface{}) error {
-	album, err := unmarshal[song.Album](body)
+	album, err := unmarshal[event.Album](body)
 	if err != nil {
 		return err
 	}
 
-	return ap.db.CreateAlbum(ctx, album)
+	return ap.db.CreateAlbum(ctx, album.ToDomain())
 }
 
 func (sp SongPublished) Handle(ctx context.Context, body []byte, _ map[string]interface{}) error {
-	s, err := unmarshal[song.Song](body)
+	s, err := unmarshal[event.Song](body)
 	if err != nil {
 		return err
 	}
 
-	if err := sp.db.CreateSong(ctx, s); err != nil {
+	if err := sp.db.CreateSong(ctx, s.ToDomain()); err != nil {
 		return err
 	}
 
-	return sp.db.AddSongToAlbum(ctx, s)
+	return sp.db.AddSongToAlbum(ctx, s.ToDomain())
 }
 
 func unmarshal[T any](body []byte) (T, error) {

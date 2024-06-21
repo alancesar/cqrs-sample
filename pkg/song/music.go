@@ -4,25 +4,25 @@ type (
 	Gender string
 
 	Song struct {
-		ID          string `json:"id"`
-		TrackNumber int    `json:"track_number"`
-		Title       string `json:"title"`
-		Album       Album  `json:"album"`
-		Artist      Artist `json:"artist"`
+		ID          string
+		TrackNumber int
+		Title       string
+		Album       Album
+		Artist      Artist
 	}
 
 	Album struct {
-		ID          string `json:"id"`
-		Title       string `json:"title"`
-		Artist      Artist `json:"artist"`
-		ReleaseYear int    `json:"release_year"`
-		Songs       []Song `json:"songs"`
+		ID          string
+		Title       string
+		Artist      Artist
+		ReleaseYear int
+		Songs       []Song
 	}
 
 	Artist struct {
-		ID     string  `json:"id"`
-		Name   string  `json:"name"`
-		Gender Gender  `json:"gender"`
-		Albums []Album `json:"albums"`
+		ID     string
+		Name   string
+		Gender Gender
+		Albums []Album
 	}
 )
