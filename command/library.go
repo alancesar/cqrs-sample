@@ -97,7 +97,8 @@ func (ca SubscribeArtist) Execute(ctx context.Context, cmd SubscribeArtistComman
 		return song.Artist{}, err
 	}
 
-	if err := ca.pub.Publish(ctx, event.NewMessage(artist), event.ArtistSubscribedEvent); err != nil {
+	message := event.NewMessage(event.NewArtistFromDomain(artist))
+	if err := ca.pub.Publish(ctx, message, event.ArtistSubscribedEvent); err != nil {
 		return song.Artist{}, err
 	}
 
@@ -117,7 +118,8 @@ func (ca PublishAlbum) Execute(ctx context.Context, cmd PublishAlbumCommand) (so
 		return song.Album{}, err
 	}
 
-	if err := ca.pub.Publish(ctx, event.NewMessage(album), event.AlbumPublishedEvent); err != nil {
+	message := event.NewMessage(event.NewAlbumFromDomain(album))
+	if err := ca.pub.Publish(ctx, message, event.AlbumPublishedEvent); err != nil {
 		return song.Album{}, err
 	}
 
@@ -137,7 +139,8 @@ func (cs PublishSong) Execute(ctx context.Context, cmd PublishSongCommand) (song
 		return song.Song{}, err
 	}
 
-	if err := cs.pub.Publish(ctx, event.NewMessage(s), event.SongPublishedEvent); err != nil {
+	message := event.NewMessage(event.NewSongFromDomain(s))
+	if err := cs.pub.Publish(ctx, message, event.SongPublishedEvent); err != nil {
 		return song.Song{}, err
 	}
 
