@@ -4,6 +4,7 @@ import (
 	"context"
 	"cqrs-sample/query"
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 )
 
@@ -52,14 +53,8 @@ func NewGetSong(q GetSongQuery) *GetSong {
 }
 
 func (ga GetArtist) Handle(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	artistID, ok := ctx.Value("artistID").(string)
-	if !ok {
-		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		return
-	}
-
-	artist, err := ga.q.Execute(ctx, artistID)
+	artistID := chi.URLParam(r, "artistID")
+	artist, err := ga.q.Execute(r.Context(), artistID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -72,14 +67,8 @@ func (ga GetArtist) Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ga GetAlbum) Handle(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	albumID, ok := ctx.Value("albumID").(string)
-	if !ok {
-		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		return
-	}
-
-	album, err := ga.q.Execute(ctx, albumID)
+	albumID := chi.URLParam(r, "albumID")
+	album, err := ga.q.Execute(r.Context(), albumID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -92,14 +81,8 @@ func (ga GetAlbum) Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ga GetSong) Handle(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	songID, ok := ctx.Value("songID").(string)
-	if !ok {
-		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		return
-	}
-
-	song, err := ga.q.Execute(ctx, songID)
+	albumID := chi.URLParam(r, "albumID")
+	song, err := ga.q.Execute(r.Context(), albumID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
