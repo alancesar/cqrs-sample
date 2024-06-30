@@ -35,6 +35,10 @@ func setupDatabase(t *testing.T) *database.Gorm {
 }
 
 func Test_Create_Artist_Album_And_Song(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	teardownSuite := cleanup(t)
 	defer teardownSuite(t)
 
