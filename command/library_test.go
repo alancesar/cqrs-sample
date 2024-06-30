@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 	"cqrs-sample/internal/database"
-	"cqrs-sample/internal/uuid"
 	"cqrs-sample/pkg/event"
 	"cqrs-sample/pkg/song"
 	"gorm.io/driver/sqlite"
@@ -43,10 +42,9 @@ func Test_Create_Artist_Album_And_Song(t *testing.T) {
 	db := setupDatabase(t)
 	publisher := &fakePublisher{}
 	ctx := context.Background()
-	uuidGenerator := uuid.New()
-	artistSubscriber := NewSubscribeArtist(db, publisher, uuidGenerator)
-	albumPublisher := NewPublishAlbum(db, publisher, uuidGenerator)
-	songPublisher := NewPublishSong(db, publisher, uuidGenerator)
+	artistSubscriber := NewSubscribeArtist(db, publisher)
+	albumPublisher := NewPublishAlbum(db, publisher)
+	songPublisher := NewPublishSong(db, publisher)
 
 	// Act
 	artist, err := artistSubscriber.Execute(ctx, SubscribeArtistCommand{

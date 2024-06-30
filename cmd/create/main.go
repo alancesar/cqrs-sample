@@ -5,7 +5,6 @@ import (
 	"cqrs-sample/command"
 	"cqrs-sample/internal/database"
 	"cqrs-sample/internal/queue"
-	"cqrs-sample/internal/uuid"
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"gorm.io/driver/postgres"
@@ -39,11 +38,10 @@ func main() {
 	}()
 
 	rabbitMQPublisher := queue.NewRabbitMQPublisher(channel, "library")
-	uuidGenerator := uuid.New()
 
-	subscribeArtist := command.NewSubscribeArtist(postgresDB, rabbitMQPublisher, uuidGenerator)
-	publishAlbum := command.NewPublishAlbum(postgresDB, rabbitMQPublisher, uuidGenerator)
-	publishSong := command.NewPublishSong(postgresDB, rabbitMQPublisher, uuidGenerator)
+	subscribeArtist := command.NewSubscribeArtist(postgresDB, rabbitMQPublisher)
+	publishAlbum := command.NewPublishAlbum(postgresDB, rabbitMQPublisher)
+	publishSong := command.NewPublishSong(postgresDB, rabbitMQPublisher)
 
 	artist, err := subscribeArtist.Execute(ctx, command.SubscribeArtistCommand{
 		Name:   "Ramones",

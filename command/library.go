@@ -4,6 +4,7 @@ import (
 	"context"
 	"cqrs-sample/pkg/event"
 	"cqrs-sample/pkg/song"
+	"github.com/google/uuid"
 )
 
 type (
@@ -28,10 +29,6 @@ type (
 		Publish(ctx context.Context, ev event.Message, key event.Event) error
 	}
 
-	UUIDGenerator interface {
-		Generate() string
-	}
-
 	SubscribeArtistCommand struct {
 		Name   string
 		Gender song.Gender
@@ -50,51 +47,45 @@ type (
 	}
 
 	SubscribeArtist struct {
-		db   ArtistDatabase
-		pub  Publisher
-		uuid UUIDGenerator
+		db  ArtistDatabase
+		pub Publisher
 	}
 
 	PublishAlbum struct {
-		db   AlbumDatabase
-		pub  Publisher
-		uuid UUIDGenerator
+		db  AlbumDatabase
+		pub Publisher
 	}
 
 	PublishSong struct {
-		db   SongDatabase
-		pub  Publisher
-		uuid UUIDGenerator
+		db  SongDatabase
+		pub Publisher
 	}
 )
 
-func NewSubscribeArtist(db ArtistDatabase, pub Publisher, uuid UUIDGenerator) *SubscribeArtist {
+func NewSubscribeArtist(db ArtistDatabase, pub Publisher) *SubscribeArtist {
 	return &SubscribeArtist{
-		db:   db,
-		pub:  pub,
-		uuid: uuid,
+		db:  db,
+		pub: pub,
 	}
 }
 
-func NewPublishAlbum(db AlbumDatabase, pub Publisher, uuid UUIDGenerator) *PublishAlbum {
+func NewPublishAlbum(db AlbumDatabase, pub Publisher) *PublishAlbum {
 	return &PublishAlbum{
-		db:   db,
-		pub:  pub,
-		uuid: uuid,
+		db:  db,
+		pub: pub,
 	}
 }
 
-func NewPublishSong(db SongDatabase, pub Publisher, uuid UUIDGenerator) *PublishSong {
+func NewPublishSong(db SongDatabase, pub Publisher) *PublishSong {
 	return &PublishSong{
-		db:   db,
-		pub:  pub,
-		uuid: uuid,
+		db:  db,
+		pub: pub,
 	}
 }
 
 func (ca SubscribeArtist) Execute(ctx context.Context, cmd SubscribeArtistCommand) (song.Artist, error) {
 	artist := &song.Artist{
-		ID:     ca.uuid.Generate(),
+		ID:     uuid.NewString(),
 		Name:   cmd.Name,
 		Gender: cmd.Gender,
 	}
@@ -117,7 +108,7 @@ func (ca PublishAlbum) Execute(ctx context.Context, cmd PublishAlbumCommand) (so
 	}
 
 	album := &song.Album{
-		ID:          ca.uuid.Generate(),
+		ID:          uuid.NewString(),
 		Title:       cmd.Title,
 		Artist:      artist,
 		ReleaseYear: cmd.ReleaseYear,
@@ -147,7 +138,7 @@ func (cs PublishSong) Execute(ctx context.Context, cmd PublishSongCommand) (song
 
 	album.Artist = artist
 	s := &song.Song{
-		ID:          cs.uuid.Generate(),
+		ID:          uuid.NewString(),
 		TrackNumber: cmd.TrackNumber,
 		Title:       cmd.Title,
 		Album:       album,
