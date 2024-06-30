@@ -5,7 +5,6 @@ import (
 	"cqrs-sample/internal/database/model"
 	"cqrs-sample/pkg/song"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type (
@@ -26,9 +25,20 @@ func NewGorm(db *gorm.DB) *Gorm {
 	}
 }
 
-func (g Gorm) CreateArtist(ctx context.Context, artist song.Artist) (song.Artist, error) {
-	m := model.NewArtistFromDomain(artist)
+func (g Gorm) CreateArtist(ctx context.Context, artist *song.Artist) error {
+	m := model.NewArtistFromDomain(*artist)
 	tx := g.db.WithContext(ctx).Create(&m)
+	if err := tx.Error; err != nil {
+		return err
+	}
+
+	artist.ID = m.ID
+	return nil
+}
+
+func (g Gorm) GetArtistByID(ctx context.Context, id string) (song.Artist, error) {
+	m := model.Artist{ID: id}
+	tx := g.db.WithContext(ctx).First(&m)
 	if err := tx.Error; err != nil {
 		return song.Artist{}, err
 	}
@@ -36,9 +46,20 @@ func (g Gorm) CreateArtist(ctx context.Context, artist song.Artist) (song.Artist
 	return m.ToDomain(), nil
 }
 
-func (g Gorm) CreateAlbum(ctx context.Context, album song.Album) (song.Album, error) {
-	m := model.NewAlbumFromDomain(album)
-	tx := g.db.WithContext(ctx).Preload(clause.Associations).Create(&m).First(&m)
+func (g Gorm) CreateAlbum(ctx context.Context, album *song.Album) error {
+	m := model.NewAlbumFromDomain(*album)
+	tx := g.db.WithContext(ctx).Create(&m)
+	if err := tx.Error; err != nil {
+		return err
+	}
+
+	album.ID = m.ID
+	return nil
+}
+
+func (g Gorm) GetAlbumByID(ctx context.Context, id string) (song.Album, error) {
+	m := model.Album{ID: id}
+	tx := g.db.WithContext(ctx).First(&m)
 	if err := tx.Error; err != nil {
 		return song.Album{}, err
 	}
@@ -46,32 +67,13 @@ func (g Gorm) CreateAlbum(ctx context.Context, album song.Album) (song.Album, er
 	return m.ToDomain(), nil
 }
 
-func (g Gorm) CreateSong(ctx context.Context, s song.Song) (song.Song, error) {
-	albumModel := model.Album{
-		ID: s.Album.ID,
-	}
-
-	tx := g.db.WithContext(ctx).First(&albumModel)
+func (g Gorm) CreateSong(ctx context.Context, s *song.Song) error {
+	m := model.NewSongFromDomain(*s)
+	tx := g.db.WithContext(ctx).Create(&m)
 	if err := tx.Error; err != nil {
-		return song.Song{}, err
+		return err
 	}
 
-	artistModel := model.Artist{
-		ID: albumModel.ArtistID,
-	}
-	tx = g.db.WithContext(ctx).First(&artistModel)
-	if err := tx.Error; err != nil {
-		return song.Song{}, err
-	}
-
-	albumModel.Artist = artistModel
-	songModel := model.NewSongFromDomain(s)
-	songModel.Album = albumModel
-	songModel.Artist = artistModel
-	tx = g.db.WithContext(ctx).Create(&songModel).First(&songModel)
-	if err := tx.Error; err != nil {
-		return song.Song{}, err
-	}
-
-	return songModel.ToDomain(), nil
+	s.ID = m.ID
+	return nil
 }

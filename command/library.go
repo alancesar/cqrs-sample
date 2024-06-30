@@ -8,15 +8,20 @@ import (
 
 type (
 	ArtistDatabase interface {
-		CreateArtist(ctx context.Context, artist song.Artist) (song.Artist, error)
+		CreateArtist(ctx context.Context, artist *song.Artist) error
+		GetArtistByID(ctx context.Context, id string) (song.Artist, error)
 	}
 
 	AlbumDatabase interface {
-		CreateAlbum(ctx context.Context, album song.Album) (song.Album, error)
+		ArtistDatabase
+		CreateAlbum(ctx context.Context, album *song.Album) error
+		GetAlbumByID(ctx context.Context, id string) (song.Album, error)
 	}
 
 	SongDatabase interface {
-		CreateSong(ctx context.Context, s song.Song) (song.Song, error)
+		AlbumDatabase
+		ArtistDatabase
+		CreateSong(ctx context.Context, s *song.Song) error
 	}
 
 	Publisher interface {
@@ -88,61 +93,75 @@ func NewPublishSong(db SongDatabase, pub Publisher, uuid UUIDGenerator) *Publish
 }
 
 func (ca SubscribeArtist) Execute(ctx context.Context, cmd SubscribeArtistCommand) (song.Artist, error) {
-	artist, err := ca.db.CreateArtist(ctx, song.Artist{
+	artist := &song.Artist{
 		ID:     ca.uuid.Generate(),
 		Name:   cmd.Name,
 		Gender: cmd.Gender,
-	})
-	if err != nil {
+	}
+	if err := ca.db.CreateArtist(ctx, artist); err != nil {
 		return song.Artist{}, err
 	}
 
-	message := event.NewMessage(event.NewArtistFromDomain(artist))
+	message := event.NewMessage(event.NewArtistFromDomain(*artist))
 	if err := ca.pub.Publish(ctx, message, event.ArtistSubscribedEvent); err != nil {
 		return song.Artist{}, err
 	}
 
-	return artist, nil
+	return *artist, nil
 }
 
 func (ca PublishAlbum) Execute(ctx context.Context, cmd PublishAlbumCommand) (song.Album, error) {
-	album, err := ca.db.CreateAlbum(ctx, song.Album{
-		ID:    ca.uuid.Generate(),
-		Title: cmd.Title,
-		Artist: song.Artist{
-			ID: cmd.ArtistID,
-		},
-		ReleaseYear: cmd.ReleaseYear,
-	})
+	artist, err := ca.db.GetArtistByID(ctx, cmd.ArtistID)
 	if err != nil {
 		return song.Album{}, err
 	}
 
-	message := event.NewMessage(event.NewAlbumFromDomain(album))
+	album := &song.Album{
+		ID:          ca.uuid.Generate(),
+		Title:       cmd.Title,
+		Artist:      artist,
+		ReleaseYear: cmd.ReleaseYear,
+	}
+	if err := ca.db.CreateAlbum(ctx, album); err != nil {
+		return song.Album{}, err
+	}
+
+	message := event.NewMessage(event.NewAlbumFromDomain(*album))
 	if err := ca.pub.Publish(ctx, message, event.AlbumPublishedEvent); err != nil {
 		return song.Album{}, err
 	}
 
-	return album, nil
+	return *album, nil
 }
 
 func (cs PublishSong) Execute(ctx context.Context, cmd PublishSongCommand) (song.Song, error) {
-	s, err := cs.db.CreateSong(ctx, song.Song{
-		ID:          cs.uuid.Generate(),
-		TrackNumber: cmd.TrackNumber,
-		Title:       cmd.Title,
-		Album: song.Album{
-			ID: cmd.AlbumID,
-		},
-	})
+	album, err := cs.db.GetAlbumByID(ctx, cmd.AlbumID)
 	if err != nil {
 		return song.Song{}, err
 	}
 
-	message := event.NewMessage(event.NewSongFromDomain(s))
+	artist, err := cs.db.GetArtistByID(ctx, album.Artist.ID)
+	if err != nil {
+		return song.Song{}, err
+	}
+
+	album.Artist = artist
+	s := &song.Song{
+		ID:          cs.uuid.Generate(),
+		TrackNumber: cmd.TrackNumber,
+		Title:       cmd.Title,
+		Album:       album,
+		Artist:      artist,
+	}
+
+	if err := cs.db.CreateSong(ctx, s); err != nil {
+		return song.Song{}, err
+	}
+
+	message := event.NewMessage(event.NewSongFromDomain(*s))
 	if err := cs.pub.Publish(ctx, message, event.SongPublishedEvent); err != nil {
 		return song.Song{}, err
 	}
 
-	return s, nil
+	return *s, nil
 }
