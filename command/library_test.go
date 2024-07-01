@@ -8,24 +8,13 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log"
-	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
 
-const (
-	testDBPath = "testdata/database.sqlite"
-)
-
-func cleanup(_ testing.TB) func(tb testing.TB) {
-	_ = os.Remove(testDBPath)
-
-	return func(tb testing.TB) {
-		_ = os.Remove(testDBPath)
-	}
-}
-
 func setupDatabase(t *testing.T) *database.Gorm {
+	testDBPath := filepath.Join(t.TempDir(), "database.sqlite")
 	db, err := gorm.Open(sqlite.Open(testDBPath), &gorm.Config{})
 	if err != nil {
 		t.Fatal(err)
@@ -38,9 +27,6 @@ func Test_Create_Artist_Album_And_Song(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
-
-	teardownSuite := cleanup(t)
-	defer teardownSuite(t)
 
 	// Arrange
 	db := setupDatabase(t)
