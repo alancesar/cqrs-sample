@@ -27,8 +27,7 @@ func NewGorm(db *gorm.DB) *Gorm {
 
 func (g Gorm) CreateArtist(ctx context.Context, artist *song.Artist) error {
 	m := model.NewArtistFromDomain(*artist)
-	tx := g.db.WithContext(ctx).Create(&m)
-	if err := tx.Error; err != nil {
+	if err := g.db.WithContext(ctx).Create(&m).Error; err != nil {
 		return err
 	}
 
@@ -38,8 +37,7 @@ func (g Gorm) CreateArtist(ctx context.Context, artist *song.Artist) error {
 
 func (g Gorm) GetArtistByID(ctx context.Context, id string) (song.Artist, error) {
 	m := model.Artist{ID: id}
-	tx := g.db.WithContext(ctx).First(&m)
-	if err := tx.Error; err != nil {
+	if err := g.db.WithContext(ctx).First(&m).Error; err != nil {
 		return song.Artist{}, err
 	}
 
@@ -48,8 +46,7 @@ func (g Gorm) GetArtistByID(ctx context.Context, id string) (song.Artist, error)
 
 func (g Gorm) CreateAlbum(ctx context.Context, album *song.Album) error {
 	m := model.NewAlbumFromDomain(*album)
-	tx := g.db.WithContext(ctx).Create(&m)
-	if err := tx.Error; err != nil {
+	if err := g.db.WithContext(ctx).Create(&m).Error; err != nil {
 		return err
 	}
 
@@ -59,8 +56,7 @@ func (g Gorm) CreateAlbum(ctx context.Context, album *song.Album) error {
 
 func (g Gorm) GetAlbumByID(ctx context.Context, id string) (song.Album, error) {
 	m := model.Album{ID: id}
-	tx := g.db.WithContext(ctx).First(&m)
-	if err := tx.Error; err != nil {
+	if err := g.db.WithContext(ctx).First(&m).Error; err != nil {
 		return song.Album{}, err
 	}
 
@@ -69,8 +65,7 @@ func (g Gorm) GetAlbumByID(ctx context.Context, id string) (song.Album, error) {
 
 func (g Gorm) CreateSong(ctx context.Context, s *song.Song) error {
 	m := model.NewSongFromDomain(*s)
-	tx := g.db.WithContext(ctx).Create(&m)
-	if err := tx.Error; err != nil {
+	if err := g.db.WithContext(ctx).Create(&m).Error; err != nil {
 		return err
 	}
 
