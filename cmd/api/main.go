@@ -47,9 +47,9 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
-	r.Get("/artist/{artistID}", artistHandler.Handle)
-	r.Get("/album/{albumID}", albumHandler.Handle)
-	r.Get("/song/{songID}", songHandler.Handle)
+	r.Get("/artist/{artistID}", artistHandler.GetByID)
+	r.Get("/album/{albumID}", albumHandler.GetByID)
+	r.Get("/song/{songID}", songHandler.GetByID)
 
 	server := http.Server{
 		Addr:    ":3000",

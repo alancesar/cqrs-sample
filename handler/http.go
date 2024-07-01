@@ -25,11 +25,15 @@ type (
 		q GetArtistQuery
 	}
 
-	GetAlbum struct {
+	Artist struct {
+		q GetArtistQuery
+	}
+
+	Album struct {
 		q GetAlbumQuery
 	}
 
-	GetSong struct {
+	Song struct {
 		q GetSongQuery
 	}
 )
@@ -52,7 +56,7 @@ func NewGetSong(q GetSongQuery) *GetSong {
 	}
 }
 
-func (ga GetArtist) Handle(w http.ResponseWriter, r *http.Request) {
+func (ga Artist) GetByID(w http.ResponseWriter, r *http.Request) {
 	artistID := chi.URLParam(r, "artistID")
 	artist, err := ga.q.Execute(r.Context(), artistID)
 	if err != nil {
@@ -66,7 +70,7 @@ func (ga GetArtist) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ga GetAlbum) Handle(w http.ResponseWriter, r *http.Request) {
+func (ga Album) GetByID(w http.ResponseWriter, r *http.Request) {
 	albumID := chi.URLParam(r, "albumID")
 	album, err := ga.q.Execute(r.Context(), albumID)
 	if err != nil {
@@ -80,15 +84,15 @@ func (ga GetAlbum) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ga GetSong) Handle(w http.ResponseWriter, r *http.Request) {
+func (ga Song) GetByID(w http.ResponseWriter, r *http.Request) {
 	albumID := chi.URLParam(r, "songID")
-	song, err := ga.q.Execute(r.Context(), albumID)
+	s, err := ga.q.Execute(r.Context(), albumID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(song); err != nil {
+	if err := json.NewEncoder(w).Encode(s); err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
