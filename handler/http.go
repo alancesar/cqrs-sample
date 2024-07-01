@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"cqrs-sample/command"
+	"cqrs-sample/pkg/song"
 	"cqrs-sample/query"
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
@@ -13,16 +15,24 @@ type (
 		Execute(ctx context.Context, id string) (query.ArtistResponse, error)
 	}
 
+	SubscribeArtistCommand interface {
+		Execute(ctx context.Context, artist command.SubscribeArtistCommand) (song.Artist, error)
+	}
+
 	GetAlbumQuery interface {
 		Execute(ctx context.Context, id string) (query.AlbumResponse, error)
+	}
+
+	PublishAlbumCommand interface {
+		Execute(ctx context.Context, cmd command.PublishAlbumCommand) (song.Album, error)
 	}
 
 	GetSongQuery interface {
 		Execute(ctx context.Context, id string) (query.SongResponse, error)
 	}
 
-	GetArtist struct {
-		q GetArtistQuery
+	PublishSongCommand interface {
+		Execute(ctx context.Context, cmd command.PublishSongCommand) (song.Song, error)
 	}
 
 	Artist struct {
