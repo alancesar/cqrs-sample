@@ -81,7 +81,7 @@ func (ga GetAlbum) Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ga GetSong) Handle(w http.ResponseWriter, r *http.Request) {
-	albumID := chi.URLParam(r, "albumID")
+	albumID := chi.URLParam(r, "songID")
 	song, err := ga.q.Execute(r.Context(), albumID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
