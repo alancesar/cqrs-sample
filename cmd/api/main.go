@@ -33,12 +33,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	getAlbumQuery := query.NewGetAlbum(mongoDB)
 	getArtistQuery := query.NewGetArtist(mongoDB)
+	getAlbumQuery := query.NewGetAlbum(mongoDB)
 	getSongQuery := query.NewGetSong(mongoDB)
 
-	albumHandler := handler.NewAlbumReader(getAlbumQuery)
 	artistHandler := handler.NewArtistReader(getArtistQuery)
+	albumHandler := handler.NewAlbumReader(getAlbumQuery)
 	songHandler := handler.NewSongReader(getSongQuery)
 
 	r := chi.NewRouter()
