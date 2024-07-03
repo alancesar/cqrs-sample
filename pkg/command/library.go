@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"cqrs-sample/pkg/event"
+	"cqrs-sample/pkg/message"
 	"cqrs-sample/pkg/song"
 	"github.com/google/uuid"
 )
@@ -93,8 +94,8 @@ func (ca SubscribeArtist) Execute(ctx context.Context, cmd SubscribeArtistComman
 		return song.Artist{}, err
 	}
 
-	message := event.NewMessage(event.NewArtistFromDomain(*artist))
-	if err := ca.pub.Publish(ctx, message, event.ArtistSubscribedEvent); err != nil {
+	m := event.NewMessage(message.NewArtistFromDomain(*artist))
+	if err := ca.pub.Publish(ctx, m, event.ArtistSubscribedEvent); err != nil {
 		return song.Artist{}, err
 	}
 
@@ -117,8 +118,8 @@ func (ca PublishAlbum) Execute(ctx context.Context, cmd PublishAlbumCommand) (so
 		return song.Album{}, err
 	}
 
-	message := event.NewMessage(event.NewAlbumFromDomain(*album))
-	if err := ca.pub.Publish(ctx, message, event.AlbumPublishedEvent); err != nil {
+	m := event.NewMessage(message.NewAlbumFromDomain(*album))
+	if err := ca.pub.Publish(ctx, m, event.AlbumPublishedEvent); err != nil {
 		return song.Album{}, err
 	}
 
@@ -149,8 +150,8 @@ func (cs PublishSong) Execute(ctx context.Context, cmd PublishSongCommand) (song
 		return song.Song{}, err
 	}
 
-	message := event.NewMessage(event.NewSongFromDomain(*s))
-	if err := cs.pub.Publish(ctx, message, event.SongPublishedEvent); err != nil {
+	m := event.NewMessage(message.NewSongFromDomain(*s))
+	if err := cs.pub.Publish(ctx, m, event.SongPublishedEvent); err != nil {
 		return song.Song{}, err
 	}
 

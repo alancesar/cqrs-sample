@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"cqrs-sample/pkg/event"
+	"cqrs-sample/pkg/message"
 	"cqrs-sample/pkg/song"
 	"encoding/json"
 	"fmt"
@@ -54,7 +55,7 @@ func NewSongPublished(db SongDatabase) *SongPublished {
 }
 
 func (ah ArtistSubscribed) Handle(ctx context.Context, body []byte, _ map[string]interface{}) error {
-	artist, err := unmarshal[event.Artist](body)
+	artist, err := unmarshal[message.Artist](body)
 	if err != nil {
 		return err
 	}
@@ -63,7 +64,7 @@ func (ah ArtistSubscribed) Handle(ctx context.Context, body []byte, _ map[string
 }
 
 func (ap AlbumPublished) Handle(ctx context.Context, body []byte, _ map[string]interface{}) error {
-	album, err := unmarshal[event.Album](body)
+	album, err := unmarshal[message.Album](body)
 	if err != nil {
 		return err
 	}
@@ -72,7 +73,7 @@ func (ap AlbumPublished) Handle(ctx context.Context, body []byte, _ map[string]i
 }
 
 func (sp SongPublished) Handle(ctx context.Context, body []byte, _ map[string]interface{}) error {
-	s, err := unmarshal[event.Song](body)
+	s, err := unmarshal[message.Song](body)
 	if err != nil {
 		return err
 	}

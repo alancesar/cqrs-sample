@@ -2,10 +2,10 @@ package handler
 
 import (
 	"context"
-	"cqrs-sample/command"
-	"cqrs-sample/handler/presenter"
+	"cqrs-sample/pkg/command"
+	"cqrs-sample/pkg/handler/presenter"
+	"cqrs-sample/pkg/query"
 	"cqrs-sample/pkg/song"
-	"cqrs-sample/query"
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"net/http"

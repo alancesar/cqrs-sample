@@ -1,7 +1,7 @@
 package presenter
 
 import (
-	"cqrs-sample/command"
+	"cqrs-sample/pkg/command"
 	"cqrs-sample/pkg/song"
 )
 

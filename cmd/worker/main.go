@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"cqrs-sample/handler"
 	"cqrs-sample/internal/database"
 	"cqrs-sample/internal/queue"
+	"cqrs-sample/pkg/handler"
 	"fmt"
 	_ "github.com/joho/godotenv/autoload"
 	amqp "github.com/rabbitmq/amqp091-go"

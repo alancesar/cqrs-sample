@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"cqrs-sample/command"
-	"cqrs-sample/handler"
 	"cqrs-sample/internal/database"
 	"cqrs-sample/internal/queue"
 	"cqrs-sample/internal/server"
+	"cqrs-sample/pkg/command"
+	"cqrs-sample/pkg/handler"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/joho/godotenv/autoload"

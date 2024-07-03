@@ -1,4 +1,4 @@
-package event
+package message
 
 import (
 	"cqrs-sample/pkg/song"
