@@ -4,21 +4,17 @@ import (
 	"context"
 	"cqrs-sample/handler"
 	"cqrs-sample/internal/database"
+	"cqrs-sample/internal/server"
 	"cqrs-sample/query"
-	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
-	"net/http"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	ctx := context.Background()
 
 	mongoURI := "mongodb://root:Pa55w0rd@localhost:27017/"
 	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
@@ -51,30 +47,8 @@ func main() {
 	r.Get("/album/{albumID}", albumHandler.GetByID)
 	r.Get("/song/{songID}", songHandler.GetByID)
 
-	server := http.Server{
-		Addr:    ":3000",
-		Handler: r,
+	s := server.New(r)
+	if err := s.StartWithGracefulShutdown(ctx, ":3030"); err != nil {
+		log.Fatalln(err)
 	}
-
-	go func() {
-		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalln(err)
-		}
-	}()
-
-	log.Println("all systems go!")
-
-	<-ctx.Done()
-	stop()
-
-	log.Println("shutting down...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		log.Println(err)
-	}
-
-	log.Println("good bye")
 }
