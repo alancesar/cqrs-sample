@@ -6,16 +6,18 @@ import (
 	"cqrs-sample/internal/database"
 	"cqrs-sample/internal/queue"
 	"fmt"
+	_ "github.com/joho/godotenv/autoload"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"os"
 )
 
 func main() {
 	ctx := context.Background()
-	mongoURI := "mongodb://root:Pa55w0rd@localhost:27017/"
-	amqpDial := "amqp://rabbitmq:Pa55w0rd@localhost:5672/"
+	mongoURI := os.Getenv("MONGO_URI")
+	amqpDial := os.Getenv("AMQP_DIAL")
 
 	mongoClient, err := mongo.Connect(ctx, options.Client().
 		ApplyURI(mongoURI))
@@ -29,7 +31,8 @@ func main() {
 		}
 	}()
 
-	mongoDB, err := database.NewMongo(mongoClient.Database("library"))
+	libraryDatabase := os.Getenv("LIBRARY_DATABASE")
+	mongoDB, err := database.NewMongo(mongoClient.Database(libraryDatabase))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -52,7 +55,8 @@ func main() {
 			log.Fatalln(err)
 		}
 
-		artistSubscriber := queue.NewRabbitMQSubscriber(channel, "artist.subscribed")
+		artistSubscribedQueue := os.Getenv("ARTIST_SUBSCRIBED_QUEUE")
+		artistSubscriber := queue.NewRabbitMQSubscriber(channel, artistSubscribedQueue)
 		if err := artistSubscriber.Subscribe(ctx, artistHandler); err != nil {
 			log.Fatalln(err)
 		}
@@ -66,7 +70,8 @@ func main() {
 			log.Fatalln(err)
 		}
 
-		albumSubscriber := queue.NewRabbitMQSubscriber(channel, "album.published")
+		albumPublishedQueue := os.Getenv("ALBUM_PUBLISHED_QUEUE")
+		albumSubscriber := queue.NewRabbitMQSubscriber(channel, albumPublishedQueue)
 		if err := albumSubscriber.Subscribe(ctx, albumHandler); err != nil {
 			log.Fatalln(err)
 		}
@@ -80,7 +85,8 @@ func main() {
 			log.Fatalln(err)
 		}
 
-		songSubscriber := queue.NewRabbitMQSubscriber(channel, "song.published")
+		songPublishedQueue := os.Getenv("SONG_PUBLISHED_QUEUE")
+		songSubscriber := queue.NewRabbitMQSubscriber(channel, songPublishedQueue)
 		if err := songSubscriber.Subscribe(ctx, songHandler); err != nil {
 			log.Fatalln(err)
 		}

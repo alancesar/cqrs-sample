@@ -9,16 +9,18 @@ import (
 	"cqrs-sample/internal/server"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	_ "github.com/joho/godotenv/autoload"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
+	"os"
 )
 
 func main() {
 	ctx := context.Background()
-	postgresDSN := "host=localhost user=postgres password=Pa55w0rd dbname=postgres port=5432 sslmode=disable TimeZone=America/Sao_Paulo"
-	amqpDial := "amqp://rabbitmq:Pa55w0rd@localhost:5672/"
+	postgresDSN := os.Getenv("POSTGRES_DSN")
+	amqpDial := os.Getenv("AMQP_DIAL")
 
 	db, err := gorm.Open(postgres.Open(postgresDSN), &gorm.Config{})
 	if err != nil {
@@ -40,7 +42,8 @@ func main() {
 		_ = channel.Close()
 	}()
 
-	rabbitMQPublisher := queue.NewRabbitMQPublisher(channel, "library")
+	libraryExchange := os.Getenv("LIBRARY_EXCHANGE")
+	rabbitMQPublisher := queue.NewRabbitMQPublisher(channel, libraryExchange)
 
 	subscribeArtistCommand := command.NewSubscribeArtist(postgresDB, rabbitMQPublisher)
 	publishAlbumCommand := command.NewPublishAlbum(postgresDB, rabbitMQPublisher)

@@ -8,15 +8,17 @@ import (
 	"cqrs-sample/query"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	_ "github.com/joho/godotenv/autoload"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"os"
 )
 
 func main() {
 	ctx := context.Background()
+	mongoURI := os.Getenv("MONGO_URI")
 
-	mongoURI := "mongodb://root:Pa55w0rd@localhost:27017/"
 	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatalln(err)
