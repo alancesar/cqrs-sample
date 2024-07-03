@@ -41,9 +41,9 @@ func main() {
 	getArtistQuery := query.NewGetArtist(mongoDB)
 	getSongQuery := query.NewGetSong(mongoDB)
 
-	albumHandler := handler.NewGetAlbum(getAlbumQuery)
-	artistHandler := handler.NewGetArtist(getArtistQuery)
-	songHandler := handler.NewGetSong(getSongQuery)
+	albumHandler := handler.NewAlbumReader(getAlbumQuery)
+	artistHandler := handler.NewArtistReader(getArtistQuery)
+	songHandler := handler.NewSongReader(getSongQuery)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)

@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"cqrs-sample/command"
+	"cqrs-sample/handler/presenter"
 	"cqrs-sample/pkg/song"
 	"cqrs-sample/query"
 	"encoding/json"
@@ -35,40 +36,70 @@ type (
 		Execute(ctx context.Context, cmd command.PublishSongCommand) (song.Song, error)
 	}
 
-	Artist struct {
+	ArtistReader struct {
 		q GetArtistQuery
 	}
 
-	Album struct {
+	ArtistWriter struct {
+		cmd SubscribeArtistCommand
+	}
+
+	AlbumReader struct {
 		q GetAlbumQuery
 	}
 
-	Song struct {
+	AlbumWriter struct {
+		cmd PublishAlbumCommand
+	}
+
+	SongReader struct {
 		q GetSongQuery
+	}
+
+	SongWriter struct {
+		cmd PublishSongCommand
 	}
 )
 
-func NewGetArtist(q GetArtistQuery) *GetArtist {
-	return &GetArtist{
+func NewArtistReader(q GetArtistQuery) *ArtistReader {
+	return &ArtistReader{
 		q: q,
 	}
 }
 
-func NewGetAlbum(q GetAlbumQuery) *GetAlbum {
-	return &GetAlbum{
+func NewArtistWriter(cmd SubscribeArtistCommand) *ArtistWriter {
+	return &ArtistWriter{
+		cmd: cmd,
+	}
+}
+
+func NewAlbumReader(q GetAlbumQuery) *AlbumReader {
+	return &AlbumReader{
 		q: q,
 	}
 }
 
-func NewGetSong(q GetSongQuery) *GetSong {
-	return &GetSong{
+func NewAlbumWriter(cmd PublishAlbumCommand) *AlbumWriter {
+	return &AlbumWriter{
+		cmd: cmd,
+	}
+}
+
+func NewSongReader(q GetSongQuery) *SongReader {
+	return &SongReader{
 		q: q,
 	}
 }
 
-func (ga Artist) GetByID(w http.ResponseWriter, r *http.Request) {
+func NewSongWriter(cmd PublishSongCommand) *SongWriter {
+	return &SongWriter{
+		cmd: cmd,
+	}
+}
+
+func (ar ArtistReader) GetByID(w http.ResponseWriter, r *http.Request) {
 	artistID := chi.URLParam(r, "artistID")
-	artist, err := ga.q.Execute(r.Context(), artistID)
+	artist, err := ar.q.Execute(r.Context(), artistID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -80,9 +111,31 @@ func (ga Artist) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ga Album) GetByID(w http.ResponseWriter, r *http.Request) {
+func (aw ArtistWriter) Create(w http.ResponseWriter, r *http.Request) {
+	var request presenter.SubscribeArtistRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	artist, err := aw.cmd.Execute(r.Context(), request.ToCommand())
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	response := presenter.NewSubscribeArtistResponseFromDomain(artist)
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (ar AlbumReader) GetByID(w http.ResponseWriter, r *http.Request) {
 	albumID := chi.URLParam(r, "albumID")
-	album, err := ga.q.Execute(r.Context(), albumID)
+	album, err := ar.q.Execute(r.Context(), albumID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -94,15 +147,59 @@ func (ga Album) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ga Song) GetByID(w http.ResponseWriter, r *http.Request) {
+func (aw AlbumWriter) Create(w http.ResponseWriter, r *http.Request) {
+	var request presenter.PublishAlbumRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	album, err := aw.cmd.Execute(r.Context(), request.ToCommand())
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	response := presenter.NewPublishAlbumResponseFromDomain(album)
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (sr SongReader) GetByID(w http.ResponseWriter, r *http.Request) {
 	albumID := chi.URLParam(r, "songID")
-	s, err := ga.q.Execute(r.Context(), albumID)
+	s, err := sr.q.Execute(r.Context(), albumID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(s); err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (sw SongWriter) Create(w http.ResponseWriter, r *http.Request) {
+	var request presenter.PublishSongRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	s, err := sw.cmd.Execute(r.Context(), request.ToCommand())
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	response := presenter.NewPublishSongResponseFromDomain(s)
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
