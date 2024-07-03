@@ -19,8 +19,7 @@ type (
 	}
 
 	RabbitMQSubscriber struct {
-		ch    *amqp.Channel
-		queue string
+		conn *amqp.Connection
 	}
 )
 
@@ -31,10 +30,9 @@ func NewRabbitMQPublisher(ch *amqp.Channel, exchange string) *RabbitMQPublisher 
 	}
 }
 
-func NewRabbitMQSubscriber(ch *amqp.Channel, queue string) *RabbitMQSubscriber {
+func NewRabbitMQSubscriber(conn *amqp.Connection) *RabbitMQSubscriber {
 	return &RabbitMQSubscriber{
-		ch:    ch,
-		queue: queue,
+		conn: conn,
 	}
 }
 
@@ -54,9 +52,18 @@ func (p RabbitMQPublisher) Publish(ctx context.Context, message event.Message, e
 	return err
 }
 
-func (m RabbitMQSubscriber) Subscribe(ctx context.Context, handler Handler) error {
-	messages, err := m.ch.Consume(
-		m.queue,
+func (m RabbitMQSubscriber) Subscribe(ctx context.Context, queue string, handler Handler) error {
+	channel, err := m.conn.Channel()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = channel.Close()
+	}()
+
+	messages, err := channel.Consume(
+		queue,
 		"",
 		false,
 		false,
@@ -70,16 +77,16 @@ func (m RabbitMQSubscriber) Subscribe(ctx context.Context, handler Handler) erro
 	}
 
 	for message := range messages {
-		fmt.Println("message received at", m.queue)
-		if err := handler.Handle(ctx, message.Body, message.Headers); err != nil {
+		fmt.Println("message received at", queue)
+		err := handler.Handle(ctx, message.Body, message.Headers)
+		if err != nil {
 			fmt.Println(err)
-			if errors.Is(err, event.InvalidPayloadErr) {
-				_ = message.Ack(false)
-			} else {
-				_ = message.Nack(false, true)
-			}
-		} else {
+		}
+
+		if err == nil || errors.Is(err, event.InvalidPayloadErr) {
 			_ = message.Ack(false)
+		} else {
+			_ = message.Nack(false, true)
 		}
 	}
 
