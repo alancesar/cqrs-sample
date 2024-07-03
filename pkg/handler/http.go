@@ -105,10 +105,7 @@ func (ar ArtistReader) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(artist); err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
+	writeJsonResponse(w, artist, http.StatusOK)
 }
 
 func (aw ArtistWriter) Create(w http.ResponseWriter, r *http.Request) {
@@ -125,12 +122,7 @@ func (aw ArtistWriter) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := presenter.NewSubscribeArtistResponseFromDomain(artist)
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
+	writeJsonResponse(w, response, http.StatusCreated)
 }
 
 func (ar AlbumReader) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -141,10 +133,7 @@ func (ar AlbumReader) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(album); err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
+	writeJsonResponse(w, album, http.StatusOK)
 }
 
 func (aw AlbumWriter) Create(w http.ResponseWriter, r *http.Request) {
@@ -161,12 +150,7 @@ func (aw AlbumWriter) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := presenter.NewPublishAlbumResponseFromDomain(album)
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
+	writeJsonResponse(w, response, http.StatusCreated)
 }
 
 func (sr SongReader) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -177,10 +161,7 @@ func (sr SongReader) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(s); err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
+	writeJsonResponse(w, s, http.StatusOK)
 }
 
 func (sw SongWriter) Create(w http.ResponseWriter, r *http.Request) {
@@ -197,9 +178,13 @@ func (sw SongWriter) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := presenter.NewPublishSongResponseFromDomain(s)
-	w.WriteHeader(http.StatusCreated)
+	writeJsonResponse(w, response, http.StatusCreated)
+}
+
+func writeJsonResponse(w http.ResponseWriter, output any, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
+	w.WriteHeader(statusCode)
+	if err := json.NewEncoder(w).Encode(output); err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
