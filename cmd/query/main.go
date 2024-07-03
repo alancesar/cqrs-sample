@@ -48,7 +48,7 @@ func main() {
 	r.Get("/song/{songID}", songHandler.GetByID)
 
 	s := server.New(r)
-	if err := s.StartWithGracefulShutdown(ctx, ":3030"); err != nil {
+	if err := s.StartWithGracefulShutdown(ctx, ":3031"); err != nil {
 		log.Fatalln(err)
 	}
 }
