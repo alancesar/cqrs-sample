@@ -178,8 +178,8 @@ func (aw AlbumWriter) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (sr SongReader) Get(w http.ResponseWriter, r *http.Request) {
-	albumID := chi.URLParam(r, "songID")
-	s, err := sr.q.Execute(r.Context(), albumID)
+	songID := chi.URLParam(r, "songID")
+	s, err := sr.q.Execute(r.Context(), songID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
