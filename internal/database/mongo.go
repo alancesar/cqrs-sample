@@ -97,3 +97,21 @@ func (m Mongo) GetAlbumByID(ctx context.Context, id string) (song.Album, error) 
 
 	return doc.ToDomain(), nil
 }
+
+func (m Mongo) GetAlbumsByArtistID(ctx context.Context, artistID string) ([]song.Album, error) {
+	cursor, err := m.db.Collection(albumsCollectionName).Find(ctx, bson.M{"artist._id": artistID})
+	if err != nil {
+		return nil, err
+	}
+
+	var docs []document.Album
+	if err := cursor.All(ctx, &docs); err != nil {
+		return nil, err
+	}
+
+	output := make([]song.Album, len(docs), len(docs))
+	for i, doc := range docs {
+		output[i] = doc.ToDomain()
+	}
+	return output, nil
+}

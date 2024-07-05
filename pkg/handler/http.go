@@ -24,6 +24,10 @@ type (
 		Execute(ctx context.Context, id string) (query.AlbumResponse, error)
 	}
 
+	GetAlbumsByArtistQuery interface {
+		Execute(ctx context.Context, artistID string) ([]query.AlbumResponse, error)
+	}
+
 	PublishAlbumCommand interface {
 		Execute(ctx context.Context, cmd command.PublishAlbumCommand) (song.Album, error)
 	}
@@ -37,7 +41,8 @@ type (
 	}
 
 	ArtistReader struct {
-		q GetArtistQuery
+		artistQuery GetArtistQuery
+		albumsQuery GetAlbumsByArtistQuery
 	}
 
 	ArtistWriter struct {
@@ -61,9 +66,10 @@ type (
 	}
 )
 
-func NewArtistReader(q GetArtistQuery) *ArtistReader {
+func NewArtistReader(artistQuery GetArtistQuery, albumsQuery GetAlbumsByArtistQuery) *ArtistReader {
 	return &ArtistReader{
-		q: q,
+		artistQuery: artistQuery,
+		albumsQuery: albumsQuery,
 	}
 }
 
@@ -73,9 +79,9 @@ func NewArtistWriter(cmd SubscribeArtistCommand) *ArtistWriter {
 	}
 }
 
-func NewAlbumReader(q GetAlbumQuery) *AlbumReader {
+func NewAlbumReader(albumQuery GetAlbumQuery) *AlbumReader {
 	return &AlbumReader{
-		q: q,
+		q: albumQuery,
 	}
 }
 
@@ -97,15 +103,27 @@ func NewSongWriter(cmd PublishSongCommand) *SongWriter {
 	}
 }
 
-func (ar ArtistReader) GetByID(w http.ResponseWriter, r *http.Request) {
+func (ar ArtistReader) Get(w http.ResponseWriter, r *http.Request) {
 	artistID := chi.URLParam(r, "artistID")
-	artist, err := ar.q.Execute(r.Context(), artistID)
+	artist, err := ar.artistQuery.Execute(r.Context(), artistID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	writeJsonResponse(w, artist, http.StatusOK)
+}
+
+func (ar ArtistReader) GetAlbums(w http.ResponseWriter, r *http.Request) {
+	artistID := chi.URLParam(r, "artistID")
+	albums, err := ar.albumsQuery.Execute(r.Context(), artistID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	writeJsonResponse(w, albums, http.StatusOK)
+
 }
 
 func (aw ArtistWriter) Create(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +143,7 @@ func (aw ArtistWriter) Create(w http.ResponseWriter, r *http.Request) {
 	writeJsonResponse(w, response, http.StatusCreated)
 }
 
-func (ar AlbumReader) GetByID(w http.ResponseWriter, r *http.Request) {
+func (ar AlbumReader) Get(w http.ResponseWriter, r *http.Request) {
 	albumID := chi.URLParam(r, "albumID")
 	album, err := ar.q.Execute(r.Context(), albumID)
 	if err != nil {
@@ -153,7 +171,7 @@ func (aw AlbumWriter) Create(w http.ResponseWriter, r *http.Request) {
 	writeJsonResponse(w, response, http.StatusCreated)
 }
 
-func (sr SongReader) GetByID(w http.ResponseWriter, r *http.Request) {
+func (sr SongReader) Get(w http.ResponseWriter, r *http.Request) {
 	albumID := chi.URLParam(r, "songID")
 	s, err := sr.q.Execute(r.Context(), albumID)
 	if err != nil {

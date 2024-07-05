@@ -12,6 +12,7 @@ type (
 
 	ArtistDatabase interface {
 		GetArtistByID(ctx context.Context, id string) (song.Artist, error)
+		GetAlbumsByArtistID(ctx context.Context, artistID string) ([]song.Album, error)
 	}
 
 	SongDatabase interface {
@@ -20,6 +21,10 @@ type (
 
 	GetAlbum struct {
 		db AlbumDatabase
+	}
+
+	GetAlbumsByArtist struct {
+		db ArtistDatabase
 	}
 
 	GetArtist struct {
@@ -33,6 +38,12 @@ type (
 
 func NewGetAlbum(db AlbumDatabase) *GetAlbum {
 	return &GetAlbum{
+		db: db,
+	}
+}
+
+func NewGetAlbumsByArtist(db ArtistDatabase) *GetAlbumsByArtist {
+	return &GetAlbumsByArtist{
 		db: db,
 	}
 }
@@ -56,6 +67,20 @@ func (ga GetAlbum) Execute(ctx context.Context, id string) (AlbumResponse, error
 	}
 
 	return NewAlbumResponseFromDomain(album), nil
+}
+
+func (ga GetAlbumsByArtist) Execute(ctx context.Context, artistID string) ([]AlbumResponse, error) {
+	albums, err := ga.db.GetAlbumsByArtistID(ctx, artistID)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make([]AlbumResponse, len(albums), len(albums))
+	for i, album := range albums {
+		output[i] = NewAlbumResponseFromDomain(album)
+	}
+
+	return output, nil
 }
 
 func (ga GetArtist) Execute(ctx context.Context, id string) (ArtistResponse, error) {

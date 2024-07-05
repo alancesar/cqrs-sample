@@ -37,17 +37,19 @@ func main() {
 
 	getArtistQuery := query.NewGetArtist(mongoDB)
 	getAlbumQuery := query.NewGetAlbum(mongoDB)
+	getAlbumsByArtistQuery := query.NewGetAlbumsByArtist(mongoDB)
 	getSongQuery := query.NewGetSong(mongoDB)
 
-	artistHandler := handler.NewArtistReader(getArtistQuery)
+	artistHandler := handler.NewArtistReader(getArtistQuery, getAlbumsByArtistQuery)
 	albumHandler := handler.NewAlbumReader(getAlbumQuery)
 	songHandler := handler.NewSongReader(getSongQuery)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
-	r.Get("/artist/{artistID}", artistHandler.GetByID)
-	r.Get("/album/{albumID}", albumHandler.GetByID)
-	r.Get("/song/{songID}", songHandler.GetByID)
+	r.Get("/artist/{artistID}", artistHandler.Get)
+	r.Get("/artist/{artistID}/albums", artistHandler.GetAlbums)
+	r.Get("/album/{albumID}", albumHandler.Get)
+	r.Get("/song/{songID}", songHandler.Get)
 
 	s := server.New(r)
 	if err := s.StartWithGracefulShutdown(ctx, ":3031"); err != nil {
