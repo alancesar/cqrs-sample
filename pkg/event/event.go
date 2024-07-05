@@ -9,6 +9,7 @@ const (
 	ArtistSubscribedEvent Event = "ARTIST_SUBSCRIBED"
 	AlbumPublishedEvent   Event = "ALBUM_PUBLISHED"
 	SongPublishedEvent    Event = "SONG_PUBLISHED"
+	SongPlayedEvent       Event = "SONG_PLAYED"
 )
 
 var (

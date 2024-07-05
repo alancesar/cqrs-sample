@@ -46,27 +46,35 @@ func main() {
 	}()
 
 	subscriber := queue.NewRabbitMQSubscriber(amqpConnection)
-	artistHandler := handler.NewArtistSubscribed(mongoDB)
-	albumHandler := handler.NewAlbumPublished(mongoDB)
-	songHandler := handler.NewSongPublished(mongoDB)
+	artistSubscribedHandler := handler.NewArtistSubscribed(mongoDB)
+	albumPublishedHandler := handler.NewAlbumPublished(mongoDB)
+	songPublishedHandler := handler.NewSongPublished(mongoDB)
+	songPlayedHandler := handler.NewIncrementSongPlays(mongoDB)
 
 	go func() {
 		artistSubscribedQueue := os.Getenv("ARTIST_SUBSCRIBED_QUEUE")
-		if err := subscriber.Subscribe(ctx, artistSubscribedQueue, artistHandler); err != nil {
+		if err := subscriber.Subscribe(ctx, artistSubscribedQueue, artistSubscribedHandler); err != nil {
 			log.Fatalln(err)
 		}
 	}()
 
 	go func() {
 		albumPublishedQueue := os.Getenv("ALBUM_PUBLISHED_QUEUE")
-		if err := subscriber.Subscribe(ctx, albumPublishedQueue, albumHandler); err != nil {
+		if err := subscriber.Subscribe(ctx, albumPublishedQueue, albumPublishedHandler); err != nil {
 			log.Fatalln(err)
 		}
 	}()
 
 	go func() {
 		songPublishedQueue := os.Getenv("SONG_PUBLISHED_QUEUE")
-		if err := subscriber.Subscribe(ctx, songPublishedQueue, songHandler); err != nil {
+		if err := subscriber.Subscribe(ctx, songPublishedQueue, songPublishedHandler); err != nil {
+			log.Fatalln(err)
+		}
+	}()
+
+	go func() {
+		songPlayedQueue := os.Getenv("SONG_PLAYED_QUEUE")
+		if err := subscriber.Subscribe(ctx, songPlayedQueue, songPlayedHandler); err != nil {
 			log.Fatalln(err)
 		}
 	}()

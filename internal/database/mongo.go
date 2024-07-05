@@ -115,3 +115,10 @@ func (m Mongo) GetAlbumsByArtistID(ctx context.Context, artistID string) ([]song
 	}
 	return output, nil
 }
+
+func (m Mongo) IncrementSongPlays(ctx context.Context, songID string) error {
+	filter := bson.M{"_id": songID}
+	update := bson.M{"$inc": bson.M{"plays": 1}}
+	_, err := m.db.Collection(songCollectionName).UpdateOne(ctx, filter, update)
+	return err
+}

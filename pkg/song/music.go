@@ -7,6 +7,7 @@ type (
 		ID          string
 		TrackNumber int
 		Title       string
+		Plays       int
 		Album       Album
 		Artist      Artist
 	}

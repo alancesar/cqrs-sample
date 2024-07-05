@@ -47,6 +47,10 @@ type (
 		Album       AlbumResponse           `json:"album"`
 		Artist      SubscribeArtistResponse `json:"artist"`
 	}
+
+	PlaySongRequest struct {
+		SongID string `json:"song_id"`
+	}
 )
 
 func (r SubscribeArtistRequest) ToCommand() command.SubscribeArtistCommand {

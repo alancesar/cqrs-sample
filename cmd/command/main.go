@@ -48,16 +48,18 @@ func main() {
 	subscribeArtistCommand := command.NewSubscribeArtist(postgresDB, rabbitMQPublisher)
 	publishAlbumCommand := command.NewPublishAlbum(postgresDB, rabbitMQPublisher)
 	publishSongCommand := command.NewPublishSong(postgresDB, rabbitMQPublisher)
+	playSongCommand := command.NewPlaySong(rabbitMQPublisher)
 
 	artistHandler := handler.NewArtistWriter(subscribeArtistCommand)
 	albumHandler := handler.NewAlbumWriter(publishAlbumCommand)
-	songHandler := handler.NewSongWriter(publishSongCommand)
+	songHandler := handler.NewSongWriter(publishSongCommand, playSongCommand)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
 	r.Post("/artists", artistHandler.Create)
 	r.Post("/albums", albumHandler.Create)
 	r.Post("/songs", songHandler.Create)
+	r.Post("/player", songHandler.Play)
 
 	s := server.New(r)
 	if err := s.StartWithGracefulShutdown(ctx, ":3030"); err != nil {

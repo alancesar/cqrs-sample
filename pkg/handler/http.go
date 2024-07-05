@@ -40,6 +40,10 @@ type (
 		Execute(ctx context.Context, cmd command.PublishSongCommand) (song.Song, error)
 	}
 
+	PlaySongCommand interface {
+		Execute(ctx context.Context, songID string) error
+	}
+
 	ArtistReader struct {
 		artistQuery GetArtistQuery
 		albumsQuery GetAlbumsByArtistQuery
@@ -62,7 +66,8 @@ type (
 	}
 
 	SongWriter struct {
-		cmd PublishSongCommand
+		publishCmd PublishSongCommand
+		playCmd    PlaySongCommand
 	}
 )
 
@@ -97,9 +102,10 @@ func NewSongReader(q GetSongQuery) *SongReader {
 	}
 }
 
-func NewSongWriter(cmd PublishSongCommand) *SongWriter {
+func NewSongWriter(publishCmd PublishSongCommand, playCmd PlaySongCommand) *SongWriter {
 	return &SongWriter{
-		cmd: cmd,
+		publishCmd: publishCmd,
+		playCmd:    playCmd,
 	}
 }
 
@@ -189,7 +195,7 @@ func (sw SongWriter) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := sw.cmd.Execute(r.Context(), request.ToCommand())
+	s, err := sw.publishCmd.Execute(r.Context(), request.ToCommand())
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -197,6 +203,20 @@ func (sw SongWriter) Create(w http.ResponseWriter, r *http.Request) {
 
 	response := presenter.NewPublishSongResponseFromDomain(s)
 	writeJsonResponse(w, response, http.StatusCreated)
+}
+
+func (sw SongWriter) Play(w http.ResponseWriter, r *http.Request) {
+	var request presenter.PlaySongRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	if err := sw.playCmd.Execute(r.Context(), request.SongID); err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func writeJsonResponse(w http.ResponseWriter, output any, statusCode int) {

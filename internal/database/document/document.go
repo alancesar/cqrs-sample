@@ -11,6 +11,7 @@ type (
 		Title       string      `bson:"title"`
 		Album       AlbumInSong `bson:"album"`
 		Artist      Artist      `bson:"artist"`
+		Plays       int         `bson:"plays"`
 	}
 
 	SongInAlbum struct {
@@ -45,6 +46,7 @@ func (s Song) ToDomain() song.Song {
 		ID:          s.ID,
 		TrackNumber: s.TrackNumber,
 		Title:       s.Title,
+		Plays:       s.Plays,
 		Album:       s.Album.ToDomain(),
 		Artist:      s.Artist.ToDomain(),
 	}
@@ -117,6 +119,7 @@ func NewSongFromDomain(s song.Song) Song {
 		ID:          s.ID,
 		TrackNumber: s.TrackNumber,
 		Title:       s.Title,
+		Plays:       s.Plays,
 		Album:       NewAlbumInSongFromDomain(s.Album),
 		Artist:      NewArtistFromDomain(s.Artist),
 	}

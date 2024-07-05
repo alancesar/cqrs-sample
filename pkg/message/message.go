@@ -25,6 +25,10 @@ type (
 		Name   string `json:"name"`
 		Gender string `json:"gender"`
 	}
+
+	PlaySong struct {
+		SongID string `json:"song_id"`
+	}
 )
 
 func (s Song) ToDomain() song.Song {

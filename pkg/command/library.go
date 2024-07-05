@@ -61,6 +61,10 @@ type (
 		db  SongDatabase
 		pub Publisher
 	}
+
+	PlaySong struct {
+		pub Publisher
+	}
 )
 
 func NewSubscribeArtist(db ArtistDatabase, pub Publisher) *SubscribeArtist {
@@ -80,6 +84,12 @@ func NewPublishAlbum(db AlbumDatabase, pub Publisher) *PublishAlbum {
 func NewPublishSong(db SongDatabase, pub Publisher) *PublishSong {
 	return &PublishSong{
 		db:  db,
+		pub: pub,
+	}
+}
+
+func NewPlaySong(pub Publisher) *PlaySong {
+	return &PlaySong{
 		pub: pub,
 	}
 }
@@ -156,4 +166,11 @@ func (cs PublishSong) Execute(ctx context.Context, cmd PublishSongCommand) (song
 	}
 
 	return *s, nil
+}
+
+func (ps PlaySong) Execute(ctx context.Context, songID string) error {
+	m := event.NewMessage(message.PlaySong{
+		SongID: songID,
+	})
+	return ps.pub.Publish(ctx, m, event.SongPlayedEvent)
 }

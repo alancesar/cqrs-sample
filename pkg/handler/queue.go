@@ -19,8 +19,9 @@ type (
 	}
 
 	SongDatabase interface {
-		CreateSong(ctx context.Context, song song.Song) error
-		AddSongToAlbum(ctx context.Context, song song.Song) error
+		CreateSong(ctx context.Context, s song.Song) error
+		AddSongToAlbum(ctx context.Context, s song.Song) error
+		IncrementSongPlays(ctx context.Context, songID string) error
 	}
 
 	ArtistSubscribed struct {
@@ -32,6 +33,10 @@ type (
 	}
 
 	SongPublished struct {
+		db SongDatabase
+	}
+
+	IncrementSongPlays struct {
 		db SongDatabase
 	}
 )
@@ -50,6 +55,12 @@ func NewAlbumPublished(db AlbumDatabase) *AlbumPublished {
 
 func NewSongPublished(db SongDatabase) *SongPublished {
 	return &SongPublished{
+		db: db,
+	}
+}
+
+func NewIncrementSongPlays(db SongDatabase) *IncrementSongPlays {
+	return &IncrementSongPlays{
 		db: db,
 	}
 }
@@ -83,6 +94,15 @@ func (sp SongPublished) Handle(ctx context.Context, body []byte, _ map[string]in
 	}
 
 	return sp.db.AddSongToAlbum(ctx, s.ToDomain())
+}
+
+func (a IncrementSongPlays) Handle(ctx context.Context, body []byte, _ map[string]interface{}) error {
+	ps, err := unmarshal[message.PlaySong](body)
+	if err != nil {
+		return err
+	}
+
+	return a.db.IncrementSongPlays(ctx, ps.SongID)
 }
 
 func unmarshal[T any](body []byte) (T, error) {

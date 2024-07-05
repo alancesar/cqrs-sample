@@ -27,6 +27,7 @@ type (
 		ID          string              `json:"id"`
 		TrackNumber int                 `json:"track_number"`
 		Title       string              `json:"title"`
+		Plays       int                 `json:"plays"`
 		Album       AlbumInSongResponse `json:"album"`
 		Artist      ArtistResponse      `json:"artist"`
 	}
@@ -82,6 +83,7 @@ func NewSongResponseFromDomain(s song.Song) SongResponse {
 		ID:          s.ID,
 		TrackNumber: s.TrackNumber,
 		Title:       s.Title,
+		Plays:       s.Plays,
 		Album:       NewAlbumInSongResponseFromDomain(s.Album),
 		Artist:      NewArtistResponseFromDomain(s.Artist),
 	}
